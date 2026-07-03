@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>离职交接</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    line-height: 1.5;
+    padding: 20px;
+    font-size: 14px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* Tab栏 */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: #fff;
+    padding: 6px;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    border-bottom: 1px solid #f0f0f2;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .tab {
+    padding: 10px 18px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #6e6e73;
+    border-radius: 8px;
+    transition: all 0.15s;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .tab:hover { background: #f5f5f7; color: #1d1d1f; }
+  .tab.active { background: #007aff; color: #fff; }
+  .tab-badge {
+    display: inline-block;
+    background: #ff3b30;
+    color: #fff;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-left: 6px;
+    vertical-align: top;
+  }
+  .tab.active .tab-badge { background: #fff; color: #007aff; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* 通用面板 */
+  .panel {
+    background: #fff;
+    border-radius: 0 0 12px 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    margin-bottom: 16px;
+  }
+  .panel-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .panel-sub {
+    font-size: 13px;
+    color: #6e6e73;
+    margin-bottom: 20px;
+  }
+
+  /* ===== 倒排表样式 ===== */
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .header-title { font-size: 18px; font-weight: 600; }
+  .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .date-picker-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #6e6e73;
+    margin-top: 6px;
+  }
+  .date-picker-wrap input {
+    padding: 6px 10px;
+    border: 1px solid #d2d2d7;
+    border-radius: 6px;
+    font-size: 13px;
+    background: #fff;
+    cursor: pointer;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .stat-card {
+    background: #f5f5f7;
+    border-radius: 8px;
+    padding: 12px 14px;
+    border-left: 3px solid #d2d2d7;
+  }
+  .stat-card.today { border-left-color: #f5a623; }
+  .stat-card.overdue { border-left-color: #ff3b30; }
+  .stat-card.done { border-left-color: #34c759; }
+  .stat-card.pending { border-left-color: #007aff; }
+  .stat-label {
+    font-size: 11px;
+    color: #6e6e73;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .stat-value { font-size: 22px; font-weight: 600; }
+  .progress-wrap {
+    margin-top: 14px;
+    background: #e5e5ea;
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #34c759, #30d158);
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .btn {
+    padding: 7px 14px;
+    border: 1px solid #d2d2d7;
+    background: #fff;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #1d1d1f;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #f5f5f7; }
+  .btn-primary { background: #007aff; color: #fff; border-color: #007aff; }
+  .btn-primary:hover { background: #0066d6; }
+  .btn-danger { color: #ff3b30; border-color: #ffb4b0; }
+  .btn-danger:hover { background: #fff5f5; }
+
+  .day-group {
+    background: #fff;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .day-header {
+    padding: 14px 20px;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+  .day-header:hover { background: #f5f5f7; }
+  .day-title {
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .day-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #e5e5ea;
+    color: #6e6e73;
+  }
+  .day-badge.today { background: #fff3e0; color: #f5a623; }
+  .day-badge.overdue { background: #ffeaea; color: #ff3b30; }
+  .day-badge.done { background: #e8f9ee; color: #34c759; }
+  .day-progress { font-size: 12px; color: #6e6e73; }
+  .day-toggle { color: #6e6e73; font-size: 12px; transition: transform 0.2s; }
+  .day-group.collapsed .day-toggle { transform: rotate(-90deg); }
+  .day-group.collapsed .task-list { display: none; }
+
+  .task-list { padding: 8px 0; }
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 20px;
+    border-left: 3px solid transparent;
+    transition: background 0.15s;
+  }
+  .task-item:hover { background: #fafafa; }
+  .task-item.today { border-left-color: #f5a623; background: #fffdf5; }
+  .task-item.overdue { border-left-color: #ff3b30; background: #fff8f8; }
+  .task-item.completed { opacity: 0.55; }
+  .task-item.completed .task-name { text-decoration: line-through; }
+
+  .checkbox {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid #d2d2d7;
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    background: #fff;
+  }
+  .checkbox.checked { background: #34c759; border-color: #34c759; }
+  .checkbox.checked::after {
+    content: "✓";
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .task-content { flex: 1; min-width: 0; }
+  .task-name { font-size: 14px; margin-bottom: 2px; word-break: break-word; }
+  .task-note { font-size: 12px; color: #6e6e73; word-break: break-word; }
+  .task-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.15s; }
+  .task-item:hover .task-actions { opacity: 1; }
+  .task-action-btn {
+    background: none;
+    border: none;
+    color: #6e6e73;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .task-action-btn:hover { background: #e5e5ea; color: #1d1d1f; }
+
+  .add-task-row {
+    padding: 10px 20px;
+    background: #fafafa;
+    border-top: 1px solid #f0f0f2;
+    display: none;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .day-group.adding .add-task-row { display: flex; }
+  .add-task-row input {
+    padding: 6px 10px;
+    border: 1px solid #d2d2d7;
+    border-radius: 6px;
+    font-size: 13px;
+    background: #fff;
+  }
+  .add-task-row input.task-name-input { flex: 1; min-width: 200px; }
+  .add-task-row input.task-note-input { flex: 1; min-width: 150px; }
+
+  .add-day-btn-wrap { text-align: center; margin: 20px 0; }
+  .empty { text-align: center; padding: 60px 20px; color: #6e6e73; background: #fff; border-radius: 12px; }
+
+  /* ===== 模态框 ===== */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 460px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 16px; }
+  .modal-field { margin-bottom: 12px; }
+  .modal-field label { display: block; font-size: 12px; color: #6e6e73; margin-bottom: 4px; }
+  .modal-field input, .modal-field select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d2d2d7;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+  /* ===== 资产盘点 & 交接模板 通用表格 ===== */
+  .doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 20px;
+    font-size: 13px;
+    background: #fff;
+  }
+  .doc-table th, .doc-table td {
+    border: 1px solid #e5e5ea;
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .doc-table th {
+    background: #f5f5f7;
+    font-weight: 600;
+    color: #1d1d1f;
+  }
+  .doc-table tr:nth-child(even) td { background: #fafafa; }
+  .doc-section { margin-bottom: 28px; }
+  .doc-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #e5e5ea;
+  }
+  .doc-section-title.red { color: #ff3b30; border-bottom-color: #ffb4b0; }
+  .doc-section-title.yellow { color: #f5a623; border-bottom-color: #ffd9a0; }
+  .doc-section-title.green { color: #34c759; border-bottom-color: #a0e8b0; }
+  .doc-note {
+    background: #fff8f8;
+    border-left: 3px solid #ff3b30;
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin: 12px 0;
+  }
+  .doc-note.info {
+    background: #f0f7ff;
+    border-left-color: #007aff;
+  }
+  .doc-note.success {
+    background: #f0fbf4;
+    border-left-color: #34c759;
+  }
+  .doc-sub-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 16px 0 8px;
+    color: #1d1d1f;
+  }
+  .doc-list { margin: 8px 0 12px 20px; font-size: 13px; color: #333; }
+  .doc-list li { margin-bottom: 4px; }
+  .doc-inline-code {
+    background: #f5f5f7;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+  }
+
+  /* ===== 最终核对 Checklist ===== */
+  .checklist-section {
+    background: #fff;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .checklist-section-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #1d1d1f;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .checklist-section-title::before {
+    content: "";
+    width: 3px;
+    height: 16px;
+    background: #007aff;
+    border-radius: 2px;
+  }
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    cursor: pointer;
+  }
+  .check-item:hover { background: #fafafa; }
+  .check-item .checkbox { margin-top: 2px; }
+  .check-item.checked .check-text { text-decoration: line-through; color: #8e8e93; }
+  .check-text { font-size: 14px; flex: 1; }
+  .check-progress {
+    font-size: 12px;
+    color: #6e6e73;
+    margin-left: auto;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #1d1d1f;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    z-index: 200;
+    opacity: 0;
+    transition: all 0.3s;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* 可编辑提示 */
+  .editable-hint {
+    font-size: 11px;
+    color: #8e8e93;
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+  [contenteditable="true"]:focus {
+    outline: 2px solid #007aff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  [contenteditable="true"] { border-radius: 4px; padding: 2px 4px; }
+
+  @media (max-width: 700px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .header-top { flex-direction: column; align-items: flex-start; }
+    .tabs { overflow-x: auto; }
+    .doc-table { font-size: 12px; }
+    .doc-table th, .doc-table td { padding: 6px 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Tab栏 -->
+  <div class="tabs">
+    <button class="tab active" data-tab="schedule">倒排表</button>
+    <button class="tab" data-tab="assets">资产盘点</button>
+    <button class="tab" data-tab="templates">交接模板</button>
+    <button class="tab" data-tab="checklist">最终核对 <span class="tab-badge" id="checklistBadge">0</span></button>
+  </div>
+
+  <!-- ===== Tab 1: 倒排表 ===== -->
+  <div class="tab-content active" id="tab-schedule">
+    <div class="panel">
+      <div class="header-top">
+        <div>
+          <div class="header-title">离职交接倒排表</div>
+          <div class="date-picker-wrap">
+            <span>离职日期：</span>
+            <input type="date" id="resignDate">
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn" onclick="exportJSON()">导出备份</button>
+          <button class="btn" onclick="document.getElementById('importFile').click()">导入</button>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+          <button class="btn btn-primary" onclick="openAddDayModal()">+ 新建分组</button>
+          <button class="btn btn-danger" onclick="resetAll()">重置</button>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat-card today"><div class="stat-label">今日到期</div><div class="stat-value" id="statToday">0</div></div>
+        <div class="stat-card overdue"><div class="stat-label">已逾期</div><div class="stat-value" id="statOverdue">0</div></div>
+        <div class="stat-card pending"><div class="stat-label">待办</div><div class="stat-value" id="statPending">0</div></div>
+        <div class="stat-card done"><div class="stat-label">已完成</div><div class="stat-value" id="statDone">0</div></div>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+    <div id="dayList"></div>
+    <div class="add-day-btn-wrap">
+      <button class="btn" onclick="openAddDayModal()">+ 添加新的日期分组</button>
+    </div>
+  </div>
+
+  <!-- ===== Tab 2: 资产盘点 ===== -->
+  <div class="tab-content" id="tab-assets">
+    <div class="panel">
+      <div class="panel-title">离职资产盘点表</div>
+      <div class="panel-sub">{{USER_INFO}}</div>
+      <div class="editable-hint">提示：表格内容可直接点击编辑，修改会自动保存到浏览器</div>
+
+      <div class="doc-section">
+        <div class="doc-section-title red">🔴 公司资产（必须交接，不能带走）</div>
+        <table class="doc-table" id="assetsRed">
+          <thead><tr><th>项目</th><th>具体内容</th><th>处理方式</th><th>风险提示</th></tr></thead>
+          <tbody>
+            <tr><td>客户数据</td><td>跟进表、询盘、订单、谈判进度</td><td>交接给接手人</td><td>保密协议明确覆盖，带走到新公司=违约</td></tr>
+            <tr><td>报价体系</td><td>报价单/PI模板、价格底线、折扣规则</td><td>归档交接</td><td>同上</td></tr>
+            <tr><td>KOL合作记录</td><td>合同、付款进度、合作条款、坑点备注</td><td>交接给接手人</td><td>带商业条款的记录绝对不能带走</td></tr>
+            <tr><td>展会资料</td><td>客户回访记录、展位搭建供应商</td><td>交接给接手人</td><td>供应商联系方式公开可得可重建，回访记录不行</td></tr>
+            <tr><td>产品资料</td><td>认证文件、培训材料、产品报价表</td><td>归档到公司指定位置</td><td>—</td></tr>
+            <tr><td>公司账号</td><td>阿里国际站、独立站、LinkedIn公司主页、企业邮箱、企微、Google Ads/Analytics、FB/IG/TikTok企业号</td><td>全部移交管理员权限</td><td>D-9到D-8完成</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-section">
+        <div class="doc-section-title yellow">🟡 混合资产（需判断边界，最容易出事的就是这栏）</div>
+        <table class="doc-table" id="assetsYellow">
+          <thead><tr><th>项目</th><th>判断</th><th>风险点</th><th>处理建议</th></tr></thead>
+          <tbody>
+            <tr><td>{{ASSET_YELLOW_ROWS}}</td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+
+        <div class="doc-note">
+          <strong>归属判断补充说明：</strong><br>
+          下班后自己折腾的项目，法律上通常属于个人作品。但三个例外会让公司主张权利：<br>
+          1. 用了公司设备/账号 — 你确认全是个人飞书，这条安全<br>
+          2. 为公司的业务服务 — 为公司业务做的项目，即便下班后做，归属也有争议<br>
+          3. 竞业限制范围 — 你签的是保密不是竞业，风险相对小
+        </div>
+      </div>
+
+      <div class="doc-section">
+        <div class="doc-section-title green">🟢 个人资产（直接带走，无争议）</div>
+        <table class="doc-table" id="assetsGreen">
+          <thead><tr><th>项目</th><th>处理</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr><td>{{ASSET_GREEN_ROWS}}</td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-note">
+        <strong>最大风险：</strong>{{RISK_REMINDER}}<br><br>
+        <strong>处理原则：</strong><br>
+        1. 方法论带走，具体数据留下 — 怎么找KOL、怎么谈合作是能力；具体名单、价格、合同不能带<br>
+        2. 重新建联而非复制 — 到新公司后从公开渠道重新联系KOL<br>
+        3. 三个项目的数据留一份给公司 — 即便自己折腾的，留一份能避免归属争议
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Tab 3: 交接模板 ===== -->
+  <div class="tab-content" id="tab-templates">
+    <div class="panel">
+      <div class="panel-title">交接文档模板</div>
+      <div class="panel-sub">按职责分4个模板。复制内容到新文件，或直接在表格里填写。填写内容会自动保存。</div>
+      <div class="editable-hint">提示：所有表格单元格可直接点击编辑，修改自动保存</div>
+
+      <div class="doc-section">
+        <div class="doc-section-title">模板一：KOL合作交接</div>
+        <div class="doc-sub-title">1. 合作中的KOL清单</div>
+        <table class="doc-table" id="tplKol1">
+          <thead><tr><th>KOL名称</th><th>平台</th><th>粉丝量</th><th>联系方式</th><th>合作阶段</th><th>合同状态</th><th>付款进度</th><th>下一步</th><th>坑点提醒</th></tr></thead>
+          <tbody>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+        <div class="doc-note info">
+          合作阶段：初次接触 / 报价中 / 已签约 / 内容制作中 / 已发布 / 已结算<br>
+          合同状态：未签 / 已签未执行 / 执行中 / 已完成<br>
+          付款进度：未付 / 定金已付 / 尾款待付 / 已结清
+        </div>
+        <div class="doc-sub-title">2. 待跟进的KOL</div>
+        <table class="doc-table" id="tplKol2">
+          <thead><tr><th>KOL名称</th><th>平台</th><th>联系方式</th><th>最后接触时间</th><th>聊到哪一步</th><th>下一步动作</th></tr></thead>
+          <tbody>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+        <div class="doc-sub-title">3. 注意事项</div>
+        <ul class="doc-list">
+          <li>哪些KOL合作过但效果不好，不推荐继续：</li>
+          <li>哪些KOL有特殊要求或禁忌：</li>
+          <li>行业惯例的报价区间参考（脱敏，不含公司具体成交价）：</li>
+        </ul>
+      </div>
+
+      <div class="doc-section">
+        <div class="doc-section-title">模板二：客户跟进交接</div>
+        <div class="doc-sub-title">1. 在跟进客户清单</div>
+        <table class="doc-table" id="tplClient1">
+          <thead><tr><th>客户名称</th><th>国家/地区</th><th>联系人</th><th>联系方式</th><th>询盘产品</th><th>询盘日期</th><th>当前阶段</th><th>下一步动作</th><th>预计金额</th></tr></thead>
+          <tbody>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+        <div class="doc-note info">当前阶段：初次询盘 / 报价中 / 样品确认 / 谈判中 / 已下单 / 售后</div>
+        <div class="doc-sub-title">2. 已下单在执行中</div>
+        <table class="doc-table" id="tplClient2">
+          <thead><tr><th>客户名称</th><th>订单号</th><th>产品</th><th>数量</th><th>金额</th><th>交货期</th><th>生产进度</th><th>物流状态</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+        <div class="doc-sub-title">3. 注意事项</div>
+        <ul class="doc-list">
+          <li>哪些客户有特殊要求：</li>
+          <li>付款方式偏好：</li>
+          <li>历史客诉记录：</li>
+        </ul>
+      </div>
+
+      <div class="doc-section">
+        <div class="doc-section-title">模板三：项目交接</div>
+        <table class="doc-table" id="tplProject">
+          <thead><tr><th>项目</th><th>内容</th></tr></thead>
+          <tbody>
+            <tr><td>项目名称</td><td></td></tr>
+            <tr><td>项目背景</td><td>为什么要做这个项目</td></tr>
+            <tr><td>目标</td><td>项目要达成什么</td></tr>
+            <tr><td>当前进度</td><td>做到哪一步了</td></tr>
+            <tr><td>下一步</td><td>接下来该做什么</td></tr>
+            <tr><td>负责人</td><td>谁来接手</td></tr>
+            <tr><td>相关文件</td><td>在哪里找</td></tr>
+            <tr><td>关键联系人</td><td>内部/外部</td></tr>
+            <tr><td>风险点</td><td>有什么坑</td></tr>
+            <tr><td>预算/资源</td><td>还剩多少</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-section">
+        <div class="doc-section-title">模板四：账号权限清单</div>
+        <table class="doc-table" id="tplAccount">
+          <thead><tr><th>平台</th><th>账号</th><th>权限角色</th><th>当前持有人</th><th>移交对象</th><th>移交日期</th><th>移交状态</th></tr></thead>
+          <tbody>
+            <tr><td>阿里国际站</td><td></td><td>管理员</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
+            <tr><td>独立站后台</td><td></td><td>管理员</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
+            <tr><td>LinkedIn公司主页</td><td></td><td>管理员</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
+            <tr><td>Facebook企业号</td><td></td><td>管理员</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
+            <tr><td>Instagram企业号</td><td></td><td>管理员</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
+            <tr><td>TikTok企业号</td><td></td><td>管理员</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
+            <tr><td>Google Ads</td><td></td><td>管理员</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
+            <tr><td>Google Analytics</td><td></td><td>管理员</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
+            <tr><td>企业邮箱</td><td></td><td>使用者</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
+            <tr><td>企业微信</td><td></td><td>使用者</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
+            <tr><td>其他</td><td></td><td></td><td></td><td></td><td></td><td>□已移交</td></tr>
+          </tbody>
+        </table>
+        <div class="doc-note info">
+          <strong>移交方式：</strong><br>
+          社媒平台：转管理员权限（不要直接给密码）<br>
+          邮箱：改密码后交接，或设置转发<br>
+          后台：转管理员权限
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Tab 4: 最终核对 Checklist ===== -->
+  <div class="tab-content" id="tab-checklist">
+    <div class="panel">
+      <div class="panel-title">离职最终核对 Checklist</div>
+      <div class="panel-sub">离职日期：{{RESIGN_DATE}} ｜ 走之前逐项打勾，全部✓才能安心离开</div>
+      <div class="progress-wrap" style="margin-bottom:20px;"><div class="progress-bar" id="checklistProgressBar"></div></div>
+
+      <div class="checklist-section">
+        <div class="checklist-section-title">一、工作交接</div>
+        <div id="cl-1"></div>
+      </div>
+      <div class="checklist-section">
+        <div class="checklist-section-title">二、账号权限</div>
+        <div id="cl-2"></div>
+      </div>
+      <div class="checklist-section">
+        <div class="checklist-section-title">三、项目归属</div>
+        <div id="cl-3"></div>
+      </div>
+      <div class="checklist-section">
+        <div class="checklist-section-title">四、个人数据</div>
+        <div id="cl-4"></div>
+      </div>
+      <div class="checklist-section">
+        <div class="checklist-section-title">五、设备清理</div>
+        <div id="cl-5"></div>
+      </div>
+      <div class="checklist-section">
+        <div class="checklist-section-title">六、保密协议遵守</div>
+        <div id="cl-6"></div>
+      </div>
+      <div class="checklist-section">
+        <div class="checklist-section-title">七、离职手续</div>
+        <div id="cl-7"></div>
+      </div>
+
+      <div class="doc-section" style="margin-top:24px;">
+        <div class="doc-section-title">签字确认</div>
+        <table class="doc-table">
+          <thead><tr><th>角色</th><th>姓名</th><th>签字</th><th>日期</th></tr></thead>
+          <tbody>
+            <tr><td>离职人</td><td>{{USER_NAME}}</td><td></td><td>2026-07-__</td></tr>
+            <tr><td>直属上级</td><td></td><td></td><td>2026-07-__</td></tr>
+            <tr><td>HR</td><td></td><td></td><td>2026-07-__</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 添加分组模态框 -->
+<div class="modal-overlay" id="dayModal">
+  <div class="modal">
+    <div class="modal-title" id="dayModalTitle">新建日期分组</div>
+    <div class="modal-field"><label>日期</label><input type="date" id="dayDate"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeDayModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveDay()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 添加/编辑任务模态框 -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-title" id="taskModalTitle">添加任务</div>
+    <div class="modal-field"><label>任务名</label><input type="text" id="taskName" placeholder="例如：整理KOL名单含合同状态"></div>
+    <div class="modal-field"><label>备注（可选）</label><input type="text" id="taskNote" placeholder="例如：含联系方式、坑点提醒"></div>
+    <div class="modal-field"><label>所属日期</label><input type="date" id="taskDate"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeTaskModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveTask()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = "resignation-toolkit-v1";
+let state = { resignDate: "", days: [], checklist: {}, assetsContent: {}, templatesContent: {} };
+let editingTaskId = null;
+
+// 默认模板
+function defaultTemplate() {
+  const resignDate = "{{RESIGN_DATE}}";
+  const resign = new Date(resignDate);
+  function dayOffset(offset) {
+    const d = new Date(resign);
+    d.setDate(d.getDate() + offset);
+    return formatDate(d);
+  }
+  return {
+    resignDate: resignDate,
+    days: [
+      { id: "d-neg-12", date: dayOffset(-12), tasks: [
+        { id: genId(), name: "信息收集：列出所有在跟进的客户/KOL/项目", note: "已完成✓", done: true },
+        { id: genId(), name: "资产盘点：分清公司资产/混合资产/个人资产", note: "已完成✓", done: true },
+        { id: genId(), name: "盘点所有管理的账号权限清单", note: "阿里国际站、独立站、LinkedIn、社媒企业号、Google Ads等", done: false },
+      ]},
+      { id: "d-neg-11", date: dayOffset(-11), tasks: [
+        { id: genId(), name: "整理KOL合作交接文档", note: "联系人、合同状态、付款进度、坑点提醒", done: false },
+        { id: genId(), name: "整理客户跟进交接文档", note: "询盘状态、谈判进度、下一步动作", done: false },
+      ]},
+      { id: "d-neg-10", date: dayOffset(-10), tasks: [
+        { id: genId(), name: "整理报价单/PI模板、认证文件", note: "归档到公司指定位置", done: false },
+        { id: genId(), name: "整理展会相关交接（如有）", note: "展位、搭建供应商、物料进度", done: false },
+      ]},
+      { id: "d-neg-9", date: dayOffset(-9), tasks: [
+        { id: genId(), name: "账号权限移交：阿里国际站、独立站、LinkedIn公司主页", note: "找接手人，转管理员", done: false },
+        { id: genId(), name: "社媒企业号权限移交：FB/IG/TikTok", note: "转管理员，保留移交记录", done: false },
+      ]},
+      { id: "d-neg-8", date: dayOffset(-8), tasks: [
+        { id: genId(), name: "Google Ads/Analytics权限移交", note: "", done: false },
+        { id: genId(), name: "企业邮箱：设置自动回复或交接给接手人", note: "重要邮件先归档", done: false },
+        { id: genId(), name: "企微权限移交", note: "退出相关群组，工作群转给接手人", done: false },
+      ]},
+      { id: "d-neg-7", date: dayOffset(-7), tasks: [
+        { id: genId(), name: "项目状态文档：每个项目写明背景+当前进度+下一步+负责人", note: "{{PROJECT_NAMES}}", done: false },
+        { id: genId(), name: "与接手人逐项过一遍交接内容", note: "最好有书面确认", done: false },
+      ]},
+      { id: "d-neg-6", date: dayOffset(-6), tasks: [
+        { id: genId(), name: "自建项目归属跟公司谈清楚", note: "{{PROJECT_OWNERSHIP_NOTE}}", done: false },
+        { id: genId(), name: "{{COMPANY_ASSET_HANDOVER}}", note: "", done: false },
+        { id: genId(), name: "{{MIXED_ASSET_HANDOVER}}", note: "避免归属争议", done: false },
+      ]},
+      { id: "d-neg-5", date: dayOffset(-5), tasks: [
+        { id: genId(), name: "个人数据导出：个人项目和学习资料", note: "{{PERSONAL_DATA_NOTE}}", done: false },
+        { id: genId(), name: "个人数据导出：邮箱通讯录（仅个人联系）", note: "不要导出客户通讯录，保密协议", done: false },
+        { id: genId(), name: "个人数据导出：浏览器书签（仅个人）", note: "", done: false },
+      ]},
+      { id: "d-neg-4", date: dayOffset(-4), tasks: [
+        { id: genId(), name: "WorkBuddy：清理公司项目相关memory", note: "客户数据、KOL合作细节等，避免后续混淆", done: false },
+        { id: genId(), name: "WorkBuddy：确认账号迁移完成", note: "自己付费，直接带走，解除公司项目关联", done: false },
+        { id: genId(), name: "健身视频、个人笔记等确认带走", note: "", done: false },
+        { id: genId(), name: "清理个人云盘、个人笔记中的公司敏感信息", note: "保密协议覆盖范围", done: false },
+      ]},
+      { id: "d-neg-3", date: dayOffset(-3), tasks: [
+        { id: genId(), name: "登出所有设备上的个人账号", note: "邮箱、IM、云盘、社媒", done: false },
+        { id: genId(), name: "清理浏览器历史、保存的密码、自动填充", note: "", done: false },
+        { id: genId(), name: "删除公司设备上的个人文件", note: "微信聊天记录、私人照片等", done: false },
+      ]},
+      { id: "d-neg-2", date: dayOffset(-2), tasks: [
+        { id: genId(), name: "跟接手人确认所有交接内容已收到", note: "书面确认最稳", done: false },
+        { id: genId(), name: "最终核对：跑一遍checklist逐项打勾", note: "", done: false },
+      ]},
+      { id: "d-neg-1", date: dayOffset(-1), tasks: [
+        { id: genId(), name: "工作交接确认书签字", note: "", done: false },
+        { id: genId(), name: "跟重要客户/KOL发告别消息（看公司政策）", note: "保密协议下注意措辞，不暗示跳槽去向", done: false },
+      ]},
+      { id: "d-day", date: dayOffset(0), tasks: [
+        { id: genId(), name: "交设备：电脑、手机、门禁卡、工牌", note: "", done: false },
+        { id: genId(), name: "签离职确认书、薪资结算单", note: "", done: false },
+        { id: genId(), name: "确认最后工资、年假折算、社保公积金", note: "", done: false },
+        { id: genId(), name: "拿离职证明", note: "之后入职新公司要用", done: false },
+      ]}
+    ],
+    checklist: {},
+    assetsContent: {},
+    templatesContent: {}
+  };
+}
+
+// Checklist 默认项
+const checklistData = {
+  "1": [
+    "KOL合作交接文档已完成（联系人、合同状态、付款进度、坑点提醒）",
+    "客户跟进交接文档已完成（询盘状态、谈判进度、下一步动作）",
+    "报价单/PI模板、认证文件已归档",
+    "展会相关已交接（如有）",
+    "项目状态文档已完成（每个项目：背景+当前进度+下一步+负责人）",
+    "与接手人逐项过完交接内容",
+    "接手人书面确认已收到所有交接内容"
+  ],
+  "2": [
+    "阿里国际站后台权限已移交",
+    "独立站后台权限已移交",
+    "LinkedIn公司主页管理员已移交",
+    "FB/IG/TikTok企业号管理员已移交",
+    "Google Ads/Analytics权限已移交",
+    "企业邮箱已设置自动回复或交接",
+    "企微已退出工作群、权限已移交",
+    "其他公司SaaS账号已全部移交或注销"
+  ],
+  "3": [
+    "自建项目1归属已跟公司谈清楚",
+    "自建项目2归属已谈清楚",
+    "为公司业务做的项目已交接给公司",
+    "三个项目是否有公司时间/设备做的，归属边界已明确"
+  ],
+  "4": [
+    "个人学习资料已导出带走",
+    "个人邮箱通讯录已导出（仅个人联系，不含客户）",
+    "浏览器书签已导出（仅个人）",
+    "健身视频、个人笔记已带走",
+    "WorkBuddy memory已清理公司敏感信息",
+    "WorkBuddy账号已确认迁移完成",
+    "个人云盘、个人笔记中的公司敏感信息已清理"
+  ],
+  "5": [
+    "所有设备已登出个人账号（邮箱、IM、云盘、社媒）",
+    "浏览器历史、保存的密码、自动填充已清理",
+    "公司设备上的个人文件已删除（微信聊天记录、私人照片等）",
+    "个人设备上的公司账号已登出"
+  ],
+  "6": [
+    "未带走任何客户名单、报价、合同条款",
+    "未带走公司整理的KOL合作记录（带商业条款的）",
+    "未复制公司敏感数据到个人设备",
+    "告别消息措辞合规（不暗示跳槽去向）"
+  ],
+  "7": [
+    "工作交接确认书已签字",
+    "设备已交还（电脑、手机、门禁卡、工牌）",
+    "离职确认书、薪资结算单已签",
+    "最后工资、年假折算已确认",
+    "社保公积金转移已确认",
+    "离职证明已拿到（入职新公司要用）"
+  ]
+};
+
+function genId() { return "t_" + Date.now() + "_" + Math.random().toString(36).slice(2,8); }
+function formatDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+function todayStr() { return formatDate(new Date()); }
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      state = JSON.parse(raw);
+      if (!state.checklist) state.checklist = {};
+      if (!state.assetsContent) state.assetsContent = {};
+      if (!state.templatesContent) state.templatesContent = {};
+    } else {
+      state = defaultTemplate();
+      save();
+    }
+  } catch(e) {
+    state = defaultTemplate();
+  }
+  state.days.sort((a,b) => a.date.localeCompare(b.date));
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// Tab切换
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("tab-" + tab.dataset.tab).classList.add("active");
+  });
+});
+
+// ===== 倒排表 =====
+function getDayStatus(dayDate) {
+  const today = todayStr();
+  if (dayDate < today) return "past";
+  if (dayDate === today) return "today";
+  return "future";
+}
+
+function getDayLabel(dayDate) {
+  if (!state.resignDate) return dayDate;
+  const diff = Math.round((new Date(dayDate) - new Date(state.resignDate)) / 86400000);
+  if (diff === 0) return "D-day 离职日";
+  if (diff < 0) return `D${diff} 离职前${Math.abs(diff)}天`;
+  return `D+${diff} 离职后${diff}天`;
+}
+
+function renderSchedule() {
+  document.getElementById("resignDate").value = state.resignDate;
+  const list = document.getElementById("dayList");
+  if (state.days.length === 0) {
+    list.innerHTML = `<div class="empty">还没有任务分组<br>点击上方"新建分组"开始</div>`;
+    updateStats();
+    return;
+  }
+  list.innerHTML = state.days.map(day => {
+    const status = getDayStatus(day.date);
+    const allDone = day.tasks.length > 0 && day.tasks.every(t => t.done);
+    const doneCount = day.tasks.filter(t => t.done).length;
+    const badgeClass = allDone ? "done" : (status === "today" ? "today" : status === "past" ? "overdue" : "");
+    const badgeText = allDone ? "已完成" : (status === "today" ? "今日" : status === "past" ? "逾期" : "待办");
+    const tasksHtml = day.tasks.map(t => {
+      const taskStatus = t.done ? "completed" : (status === "today" ? "today" : status === "past" ? "overdue" : "");
+      return `
+        <div class="task-item ${taskStatus}" data-task-id="${t.id}">
+          <div class="checkbox ${t.done ? "checked" : ""}" onclick="toggleTask('${day.id}','${t.id}')"></div>
+          <div class="task-content">
+            <div class="task-name">${escapeHtml(t.name)}</div>
+            ${t.note ? `<div class="task-note">${escapeHtml(t.note)}</div>` : ""}
+          </div>
+          <div class="task-actions">
+            <button class="task-action-btn" onclick="editTask('${day.id}','${t.id}')">编辑</button>
+            <button class="task-action-btn" onclick="deleteTask('${day.id}','${t.id}')">删除</button>
+          </div>
+        </div>`;
+    }).join("");
+    return `
+      <div class="day-group" id="day-${day.id}">
+        <div class="day-header" onclick="toggleCollapse('${day.id}')">
+          <div class="day-title">
+            <span>${getDayLabel(day.date)}</span>
+            <span class="day-badge ${badgeClass}">${badgeText}</span>
+            <span style="font-size:12px;color:#8e8e93;font-weight:400">${day.date}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="day-progress">${doneCount}/${day.tasks.length}</span>
+            <span class="day-toggle">▼</span>
+          </div>
+        </div>
+        <div class="task-list">${tasksHtml}</div>
+        <div class="add-task-row">
+          <input type="text" class="task-name-input" placeholder="任务名" id="add-name-${day.id}">
+          <input type="text" class="task-note-input" placeholder="备注（可选）" id="add-note-${day.id}">
+          <button class="btn btn-primary" onclick="quickAddTask('${day.id}')">添加</button>
+          <button class="btn" onclick="cancelAddTask('${day.id}')">取消</button>
+        </div>
+      </div>`;
+  }).join("");
+  updateStats();
+}
+
+function updateStats() {
+  let today = 0, overdue = 0, pending = 0, done = 0, total = 0;
+  const todayDate = todayStr();
+  state.days.forEach(day => {
+    day.tasks.forEach(t => {
+      total++;
+      if (t.done) { done++; return; }
+      if (day.date < todayDate) overdue++;
+      else if (day.date === todayDate) today++;
+      else pending++;
+    });
+  });
+  document.getElementById("statToday").textContent = today;
+  document.getElementById("statOverdue").textContent = overdue;
+  document.getElementById("statPending").textContent = pending;
+  document.getElementById("statDone").textContent = done;
+  const pct = total === 0 ? 0 : Math.round(done / total * 100);
+  document.getElementById("progressBar").style.width = pct + "%";
+}
+
+function toggleCollapse(dayId) {
+  const el = document.getElementById("day-" + dayId);
+  if (el.classList.contains("adding")) return;
+  el.classList.toggle("collapsed");
+}
+
+function toggleTask(dayId, taskId) {
+  const day = state.days.find(d => d.id === dayId);
+  if (!day) return;
+  const t = day.tasks.find(x => x.id === taskId);
+  if (!t) return;
+  t.done = !t.done;
+  save();
+  renderSchedule();
+}
+
+function quickAddTask(dayId) {
+  const name = document.getElementById("add-name-" + dayId).value.trim();
+  const note = document.getElementById("add-note-" + dayId).value.trim();
+  if (!name) { toast("请输入任务名"); return; }
+  const day = state.days.find(d => d.id === dayId);
+  if (!day) return;
+  day.tasks.push({ id: genId(), name, note, done: false });
+  save();
+  renderSchedule();
+  toast("已添加");
+}
+
+function editTask(dayId, taskId) {
+  const day = state.days.find(d => d.id === dayId);
+  if (!day) return;
+  const t = day.tasks.find(x => x.id === taskId);
+  if (!t) return;
+  editingTaskId = { dayId, taskId };
+  document.getElementById("taskModalTitle").textContent = "编辑任务";
+  document.getElementById("taskName").value = t.name;
+  document.getElementById("taskNote").value = t.note || "";
+  document.getElementById("taskDate").value = day.date;
+  document.getElementById("taskModal").classList.add("show");
+}
+
+function saveTask() {
+  const name = document.getElementById("taskName").value.trim();
+  const note = document.getElementById("taskNote").value.trim();
+  const date = document.getElementById("taskDate").value;
+  if (!name) { toast("请输入任务名"); return; }
+  if (!date) { toast("请选择日期"); return; }
+  if (editingTaskId) {
+    const oldDay = state.days.find(d => d.id === editingTaskId.dayId);
+    const tIdx = oldDay.tasks.findIndex(t => t.id === editingTaskId.taskId);
+    const t = oldDay.tasks[tIdx];
+    t.name = name;
+    t.note = note;
+    if (oldDay.date !== date) {
+      oldDay.tasks.splice(tIdx, 1);
+      let newDay = state.days.find(d => d.date === date);
+      if (!newDay) {
+        newDay = { id: "d_" + Date.now(), date, tasks: [] };
+        state.days.push(newDay);
+      }
+      newDay.tasks.push(t);
+      state.days.sort((a,b) => a.date.localeCompare(b.date));
+    }
+    editingTaskId = null;
+  } else {
+    let day = state.days.find(d => d.date === date);
+    if (!day) {
+      day = { id: "d_" + Date.now(), date, tasks: [] };
+      state.days.push(day);
+      state.days.sort((a,b) => a.date.localeCompare(b.date));
+    }
+    day.tasks.push({ id: genId(), name, note, done: false });
+  }
+  save();
+  renderSchedule();
+  closeTaskModal();
+  toast("已保存");
+}
+
+function closeTaskModal() {
+  document.getElementById("taskModal").classList.remove("show");
+  editingTaskId = null;
+  document.getElementById("taskName").value = "";
+  document.getElementById("taskNote").value = "";
+  document.getElementById("taskDate").value = "";
+}
+
+function deleteTask(dayId, taskId) {
+  if (!confirm("删除这个任务？")) return;
+  const day = state.days.find(d => d.id === dayId);
+  if (!day) return;
+  day.tasks = day.tasks.filter(t => t.id !== taskId);
+  if (day.tasks.length === 0) {
+    if (confirm("这个分组已空，是否一并删除分组？")) {
+      state.days = state.days.filter(d => d.id !== dayId);
+    }
+  }
+  save();
+  renderSchedule();
+  toast("已删除");
+}
+
+function openAddDayModal() {
+  document.getElementById("dayModalTitle").textContent = "新建日期分组";
+  document.getElementById("dayDate").value = todayStr();
+  document.getElementById("dayModal").classList.add("show");
+}
+
+function closeDayModal() {
+  document.getElementById("dayModal").classList.remove("show");
+}
+
+function saveDay() {
+  const date = document.getElementById("dayDate").value;
+  if (!date) { toast("请选日期"); return; }
+  if (state.days.find(d => d.date === date)) { toast("该日期已存在分组"); return; }
+  state.days.push({ id: "d_" + Date.now(), date, tasks: [] });
+  state.days.sort((a,b) => a.date.localeCompare(b.date));
+  save();
+  renderSchedule();
+  closeDayModal();
+  toast("已添加分组");
+}
+
+function exportJSON() {
+  // 同时保存可编辑内容
+  saveEditableContent();
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `离职交接_${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("已导出");
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.days || !Array.isArray(data.days)) throw new Error("格式不对");
+      state = Object.assign(defaultTemplate(), data);
+      state.days.sort((a,b) => a.date.localeCompare(b.date));
+      save();
+      renderAll();
+      toast("已导入");
+    } catch(err) {
+      toast("导入失败：" + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+function resetAll() {
+  if (!confirm("重置为默认模板？当前所有数据会被覆盖。建议先导出备份。")) return;
+  state = defaultTemplate();
+  save();
+  renderAll();
+  toast("已重置");
+}
+
+// 离职日期变化
+document.getElementById("resignDate").addEventListener("change", (e) => {
+  const newDate = e.target.value;
+  if (!newDate) return;
+  if (!state.resignDate) { state.resignDate = newDate; save(); return; }
+  if (state.resignDate === newDate) return;
+  if (!confirm("离职日期变了，是否按新的离职日期重新计算所有任务的相对日期？\n\n确定 = 所有任务日期按相同偏移量平移\n取消 = 只改离职日期，任务日期不动")) {
+    state.resignDate = newDate;
+    save();
+    return;
+  }
+  const oldMs = new Date(state.resignDate).getTime();
+  const newMs = new Date(newDate).getTime();
+  const delta = newMs - oldMs;
+  state.days.forEach(day => {
+    const old = new Date(day.date).getTime();
+    const shifted = new Date(old + delta);
+    day.date = formatDate(shifted);
+  });
+  state.resignDate = newDate;
+  state.days.sort((a,b) => a.date.localeCompare(b.date));
+  save();
+  renderSchedule();
+  toast("日期已平移");
+});
+
+// ===== Checklist =====
+function renderChecklist() {
+  Object.keys(checklistData).forEach(sectionId => {
+    const container = document.getElementById("cl-" + sectionId);
+    const items = checklistData[sectionId];
+    const doneCount = items.filter((_, i) => state.checklist[sectionId + "-" + i]).length;
+    container.innerHTML = items.map((item, i) => {
+      const key = sectionId + "-" + i;
+      const checked = state.checklist[key];
+      return `
+        <div class="check-item ${checked ? "checked" : ""}" onclick="toggleCheck('${sectionId}', ${i})">
+          <div class="checkbox ${checked ? "checked" : ""}"></div>
+          <div class="check-text">${escapeHtml(item)}</div>
+        </div>`;
+    }).join("") + `<div class="check-progress">${doneCount}/${items.length}</div>`;
+  });
+  updateChecklistStats();
+}
+
+function toggleCheck(sectionId, idx) {
+  const key = sectionId + "-" + idx;
+  state.checklist[key] = !state.checklist[key];
+  save();
+  renderChecklist();
+}
+
+function updateChecklistStats() {
+  let total = 0, done = 0;
+  Object.keys(checklistData).forEach(sectionId => {
+    checklistData[sectionId].forEach((_, i) => {
+      total++;
+      if (state.checklist[sectionId + "-" + i]) done++;
+    });
+  });
+  const pct = total === 0 ? 0 : Math.round(done / total * 100);
+  document.getElementById("checklistProgressBar").style.width = pct + "%";
+  document.getElementById("checklistBadge").textContent = (total - done);
+  document.getElementById("checklistBadge").style.display = (total - done) === 0 ? "none" : "inline-block";
+}
+
+// ===== 可编辑内容（资产盘点 & 交接模板）=====
+function setupEditable() {
+  // 资产盘点表
+  ["assetsRed", "assetsYellow", "assetsGreen"].forEach(tableId => {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    setupTableEditable(table, "assets", tableId);
+  });
+  // 交接模板表
+  ["tplKol1", "tplKol2", "tplClient1", "tplClient2", "tplProject", "tplAccount"].forEach(tableId => {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    setupTableEditable(table, "templates", tableId);
+  });
+}
+
+function setupTableEditable(table, category, tableId) {
+  const cells = table.querySelectorAll("td");
+  cells.forEach((cell, idx) => {
+    cell.setAttribute("contenteditable", "true");
+    const key = category + "_" + tableId + "_" + idx;
+    if (state[category + "Content"] && state[category + "Content"][key]) {
+      cell.innerHTML = state[category + "Content"][key];
+    }
+    cell.addEventListener("blur", () => {
+      if (!state[category + "Content"]) state[category + "Content"] = {};
+      state[category + "Content"][key] = cell.innerHTML;
+      save();
+    });
+  });
+}
+
+function saveEditableContent() {
+  ["assetsRed", "assetsYellow", "assetsGreen"].forEach(tableId => {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    const cells = table.querySelectorAll("td");
+    cells.forEach((cell, idx) => {
+      const key = "assets_" + tableId + "_" + idx;
+      state.assetsContent[key] = cell.innerHTML;
+    });
+  });
+  ["tplKol1", "tplKol2", "tplClient1", "tplClient2", "tplProject", "tplAccount"].forEach(tableId => {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    const cells = table.querySelectorAll("td");
+    cells.forEach((cell, idx) => {
+      const key = "templates_" + tableId + "_" + idx;
+      state.templatesContent[key] = cell.innerHTML;
+    });
+  });
+  save();
+}
+
+function renderAll() {
+  renderSchedule();
+  renderChecklist();
+  setupEditable();
+}
+
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 1800);
+}
+
+// 初始化
+load();
+renderAll();
+</script>
+</body>
+</html>
