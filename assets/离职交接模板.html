@@ -606,7 +606,7 @@
             <tr><td>合作方记录</td><td>合同、付款进度、合作条款、坑点备注</td><td>交接给接手人</td><td>带商业条款的记录不可带走</td></tr>
             <tr><td>展会资料</td><td>客户回访记录、搭建供应商</td><td>交接给接手人</td><td>供应商联系方式公开可得可重建，回访记录不行</td></tr>
             <tr><td>产品资料</td><td>认证文件、培训材料、产品报价表</td><td>归档到公司指定位置</td><td></td></tr>
-            <tr><td>公司账号</td><td>电商平台、独立站、社媒企业号、企业邮箱、IM、广告账户、数据分析</td><td>全部移交管理员权限</td><td>详见下方权限移交表</td></tr>
+            <tr><td>公司账号</td><td>{{ROLE_ACCOUNT_TYPES}}</td><td>全部移交管理员权限</td><td>详见下方权限移交表</td></tr>
           </tbody>
         </table>
       </div>
@@ -653,23 +653,15 @@
       <div class="doc-section">
         <div class="doc-section-title">四、账号权限移交清单</div>
         <div class="doc-note info">
-          <strong>移交方式：</strong><br>
-          社媒平台：转管理员权限（不要直接给密码）<br>
-          邮箱：改密码后交接，或设置转发<br>
-          后台：转管理员权限<br>
-          广告账户：检查支付方式绑定，移交后移除个人支付方式
+          {{ROLE_ACCOUNT_NOTE}}
         </div>
         <div class="table-scroll">
         <table class="doc-table" id="accountTransfer">
           <thead><tr><th>平台</th><th>账号</th><th>权限角色</th><th>当前持有人</th><th>移交对象</th><th>移交日期</th><th>移交状态</th></tr></thead>
           <tbody>
-            <tr><td>社媒平台（FB/IG/TikTok等）</td><td></td><td>管理员</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
-            <tr><td>后台管理系统</td><td></td><td>管理员</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
-            <tr><td>广告账户（Google Ads/Meta Ads等）</td><td></td><td>管理员</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
-            <tr><td>数据分析（Google Analytics等）</td><td></td><td>管理员</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
+            {{ROLE_ACCOUNT_ROWS}}
             <tr><td>企业邮箱</td><td></td><td>使用者</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
             <tr><td>企业IM（企微/钉钉等）</td><td></td><td>使用者</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
-            <tr><td>电商平台后台</td><td></td><td>管理员</td><td>{{USER_NAME}}</td><td></td><td></td><td>□已移交</td></tr>
             <tr><td>其他</td><td></td><td></td><td></td><td></td><td></td><td>□已移交</td></tr>
           </tbody>
         </table>
@@ -683,20 +675,16 @@
       <div class="doc-section">
         <div class="doc-section-title">五、账号安全检查清单</div>
         <div class="doc-note warning">
-          逐平台检查。社媒、广告账户、官网后台、数据分析等尤其容易遗漏。<br>
+          {{ROLE_SECURITY_NOTE}}<br>
           重点关注：个人手机/邮箱绑定、2FA、recovery email、广告/支付方式绑定、API key/token。
         </div>
         <div class="table-scroll">
         <table class="doc-table" id="accountSecurity">
           <thead><tr><th>平台</th><th>绑定个人手机</th><th>绑定个人邮箱</th><th>2FA</th><th>recovery email</th><th>需更换密码</th><th>已移除个人设备</th><th>已移除个人管理员</th><th>广告/支付绑定</th><th>API key/token/webhook</th></tr></thead>
           <tbody>
-            <tr><td>社媒平台</td><td>是/否</td><td>是/否</td><td>是/否</td><td></td><td>是/否</td><td>是/否</td><td>是/否</td><td>是/否</td><td>是/否</td></tr>
-            <tr><td>后台管理系统</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td>广告账户</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td>数据分析</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            {{ROLE_SECURITY_ROWS}}
             <tr><td>企业邮箱</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
             <tr><td>企业IM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td>电商平台</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
           </tbody>
         </table>
         </div>
@@ -873,7 +861,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const STORAGE_KEY = "resignation-toolkit-v3";
+const STORAGE_KEY = "resignation-toolbox-v3-{{USER_NAME}}";
 let state = { resignDate: "", days: [], checklist: {}, assetsContent: {}, templatesContent: {}, emailContent: {}, extraRows: {} };
 let editingTaskId = null;
 
@@ -888,70 +876,7 @@ function defaultTemplate() {
   }
   return {
     resignDate: resignDate,
-    days: [
-      { id: "d-neg-12", date: dayOffset(-12), tasks: [
-        { id: genId(), name: "信息收集：列出所有需要交接的工作事项", note: "确认接手人、主管、HR", done: true },
-        { id: genId(), name: "资产盘点：分清公司资产/混合资产/个人资产", note: "已完成", done: true },
-        { id: genId(), name: "盘点所有管理的账号权限清单", note: "社媒、后台、广告、邮箱、IM等", done: false },
-      ]},
-      { id: "d-neg-11", date: dayOffset(-11), tasks: [
-        { id: genId(), name: "整理工作交接看板", note: "每块工作填明接手人、优先级、紧急程度、资料位置", done: false },
-        { id: genId(), name: "整理合作方/客户交接文档", note: "状态、进度、下一步动作", done: false },
-      ]},
-      { id: "d-neg-10", date: dayOffset(-10), tasks: [
-        { id: genId(), name: "整理报价/文档/模板等资料", note: "归档到公司指定位置", done: false },
-        { id: genId(), name: "整理未闭环事项清单", note: "等待回复、待付款、待发布等", done: false },
-      ]},
-      { id: "d-neg-9", date: dayOffset(-9), tasks: [
-        { id: genId(), name: "账号权限移交（第一批）：社媒平台、后台", note: "转管理员，保留移交记录", done: false },
-        { id: genId(), name: "广告账户权限移交", note: "检查支付方式绑定", done: false },
-      ]},
-      { id: "d-neg-8", date: dayOffset(-8), tasks: [
-        { id: genId(), name: "数据分析权限移交（Google Analytics等）", note: "", done: false },
-        { id: genId(), name: "企业邮箱：设置自动回复或交接给接手人", note: "重要邮件先归档", done: false },
-        { id: genId(), name: "企业IM权限移交", note: "退出相关群组，工作群转给接手人", done: false },
-        { id: genId(), name: "账号安全检查：移除个人设备、个人管理员", note: "2FA、recovery email、API key", done: false },
-      ]},
-      { id: "d-neg-7", date: dayOffset(-7), tasks: [
-        { id: genId(), name: "项目状态文档：每个项目写明背景+当前进度+下一步+接手人", note: "{{PROJECT_NAMES}}", done: false },
-        { id: genId(), name: "与接手人逐项过一遍交接内容", note: "最好有书面确认", done: false },
-      ]},
-      { id: "d-neg-6", date: dayOffset(-6), tasks: [
-        { id: genId(), name: "自建项目归属跟公司谈清楚", note: "{{PROJECT_OWNERSHIP_NOTE}}", done: false },
-        { id: genId(), name: "{{COMPANY_ASSET_HANDOVER}}", note: "", done: false },
-        { id: genId(), name: "{{MIXED_ASSET_HANDOVER}}", note: "避免归属争议", done: false },
-      ]},
-      { id: "d-neg-5", date: dayOffset(-5), tasks: [
-        { id: genId(), name: "个人数据导出：个人项目和学习资料", note: "{{PERSONAL_DATA_NOTE}}", done: false },
-        { id: genId(), name: "个人数据导出：邮箱通讯录（仅个人联系）", note: "不要导出客户通讯录", done: false },
-        { id: genId(), name: "个人数据导出：浏览器书签（仅个人）", note: "", done: false },
-      ]},
-      { id: "d-neg-4", date: dayOffset(-4), tasks: [
-        { id: genId(), name: "清理个人工具中的公司敏感信息", note: "AI助手memory、笔记等", done: false },
-        { id: genId(), name: "清理个人云盘、个人笔记中的公司敏感信息", note: "", done: false },
-        { id: genId(), name: "准备对外通知邮件", note: "合作方/客户，CC接手人", done: false },
-      ]},
-      { id: "d-neg-3", date: dayOffset(-3), tasks: [
-        { id: genId(), name: "登出所有设备上的个人账号", note: "邮箱、IM、云盘、社媒", done: false },
-        { id: genId(), name: "清理浏览器历史、保存的密码、自动填充", note: "", done: false },
-        { id: genId(), name: "删除公司设备上的个人文件", note: "", done: false },
-        { id: genId(), name: "发送对外通知邮件", note: "按通知清单逐个发送", done: false },
-      ]},
-      { id: "d-neg-2", date: dayOffset(-2), tasks: [
-        { id: genId(), name: "跟接手人逐模块确认签收", note: "工作看板、合作方/客户、权限、未闭环事项", done: false },
-        { id: genId(), name: "最终核对：跑一遍checklist逐项打勾", note: "", done: false },
-      ]},
-      { id: "d-neg-1", date: dayOffset(-1), tasks: [
-        { id: genId(), name: "工作交接确认书签字", note: "", done: false },
-        { id: genId(), name: "跟重要合作方发个人告别消息（看公司政策）", note: "注意措辞，不暗示跳槽去向", done: false },
-      ]},
-      { id: "d-day", date: dayOffset(0), tasks: [
-        { id: genId(), name: "交设备：电脑、手机、门禁卡、工牌", note: "", done: false },
-        { id: genId(), name: "签离职确认书、薪资结算单", note: "", done: false },
-        { id: genId(), name: "确认最后工资、年假折算、社保公积金", note: "", done: false },
-        { id: genId(), name: "拿离职证明", note: "之后入职新公司要用", done: false },
-      ]}
-    ],
+    days: {{ROLE_SCHEDULE_ITEMS}},
     checklist: {},
     assetsContent: {},
     templatesContent: {},
@@ -960,61 +885,7 @@ function defaultTemplate() {
 }
 
 // ===== Checklist 默认项 =====
-const checklistData = {
-  "1": [
-    "工作交接看板已填写完整（每块工作有接手人、优先级、下一步）",
-    "合作方/项目状态已交代清楚",
-    "与接手人逐项过完交接内容",
-    "接手人书面确认已收到所有交接内容",
-    "未闭环事项已列出并交代清楚",
-    "对外通知已发送"
-  ],
-  "2": [
-    "所有社媒平台管理员权限已移交",
-    "后台管理系统权限已移交",
-    "广告账户权限已移交（如有）",
-    "数据分析权限已移交",
-    "企业邮箱已设置自动回复或交接",
-    "企业IM已退出工作群、权限已移交",
-    "API key/token/webhook已移交或注销",
-    "个人设备上的公司账号已登出",
-    "2FA/recovery email已更新或移交",
-    "个人管理员权限已全部移除"
-  ],
-  "3": [
-    "自建项目归属已跟公司谈清楚",
-    "为公司业务做的项目已交接给公司",
-    "项目数据归属边界已明确"
-  ],
-  "4": [
-    "个人学习资料已导出带走",
-    "个人邮箱通讯录已导出（仅个人联系，不含客户）",
-    "浏览器书签已导出（仅个人）",
-    "个人工具中的公司敏感信息已清理",
-    "个人云盘/笔记中的公司信息已清理"
-  ],
-  "5": [
-    "所有设备已登出个人账号（邮箱、IM、云盘、社媒）",
-    "浏览器历史、密码、自动填充已清理",
-    "公司设备上的个人文件已删除",
-    "个人设备上的公司账号已登出"
-  ],
-  "6": [
-    "未带走任何客户名单、报价、合同条款",
-    "未带走公司整理的合作记录",
-    "未复制公司敏感数据到个人设备",
-    "对外通知措辞合规"
-  ],
-  "7": [
-    "逐模块签收记录已完成",
-    "工作交接确认书已签字",
-    "设备已交还（电脑、手机、门禁卡、工牌）",
-    "离职确认书、薪资结算单已签",
-    "最后工资、年假折算已确认",
-    "社保公积金转移已确认",
-    "离职证明已拿到"
-  ]
-};
+const checklistData = {{ROLE_CHECKLIST_ITEMS}};
 
 // ===== 工具函数 =====
 function genId() { return "t_" + Date.now() + "_" + Math.random().toString(36).slice(2,8); }

@@ -148,22 +148,23 @@
 | `{{RESIGN_DATE}}` | 离职日期（YYYY-MM-DD） |
 | `{{ROLE_TYPE}}` | 岗位类型 |
 | `{{ROLE_TABLES}}` | **按阶段0岗位映射表生成tab2的全部table HTML**（替换模板中的默认表格） |
-| `{{ROLE_CHECKLIST_ITEMS}}` | 按岗位定制checklist工作交接模块的check项 |
+| `{{ROLE_CHECKLIST_ITEMS}}` | **AI动态生成7模块checklist JS对象** |
 | `{{ROLE_SIGNOFF_MODULES}}` | 按岗位定制签收记录模块行 |
+| `{{ROLE_SCHEDULE_ITEMS}}` | **AI根据阶段0-2所有信息动态生成倒排任务JS数组**。不预定义，每个岗位/每人生成不同的清单 |
+| `{{ROLE_ACCOUNT_ROWS}}` | 权限移交表账号行HTML（按岗位生成） |
+| `{{ROLE_SECURITY_ROWS}}` | 安全检查表账号行HTML |
+| `{{ROLE_ACCOUNT_NOTE}}` | 移交方式说明 |
+| `{{ROLE_SECURITY_NOTE}}` | 安全检查提示 |
+| `{{ROLE_ACCOUNT_TYPES}}` | 公司账号类型描述 |
 | `{{ASSET_YELLOW_ROWS}}` | 混合资产具体行 |
 | `{{ASSET_GREEN_ROWS}}` | 个人资产具体行 |
 | `{{RISK_REMINDER}}` | 风险提醒 |
-| `{{PROJECT_NAMES}}` | 项目名称列表 |
-| `{{PROJECT_OWNERSHIP_NOTE}}` | 项目归属处理说明 |
-| `{{COMPANY_ASSET_HANDOVER}}` | 公司资产交接任务名 |
-| `{{MIXED_ASSET_HANDOVER}}` | 混合资产处理任务名 |
-| `{{PERSONAL_DATA_NOTE}}` | 个人数据导出说明 |
 | `{{EMAIL_TEMPLATES}}` | 按需生成的邮件模板 |
 
 ### 生成原则
 - `{{ROLE_TABLES}}` 是tab2的全部table HTML，根据阶段0的岗位映射表生成
 - 每个表格默认2-3个空行，用户在浏览器中可增删
-- 倒排表默认任务使用通用描述，不出现KOL/1688/TikTok等岗位特定词汇
+- `{{ROLE_SCHEDULE_ITEMS}}` 由AI根据阶段0岗位+阶段1-2收集的所有信息动态推理生成。不预定义每种岗位的清单，每个用户得到不同的倒排任务
 
 ### 输出
 所有内容内置在HTML工具箱的6个tab中，可直接在表格里填写，自动保存。

@@ -111,21 +111,28 @@ description: 离职交接全流程助手，从信息收集到最终签收的6阶
 | `{{RESIGN_DATE}}` | 离职日期（YYYY-MM-DD） |
 | `{{ROLE_TABLES}}` | **按阶段0的岗位对应表，生成tab2的工作交接看板HTML**（替换掉模板中的默认KOL表格） |
 | `{{ROLE_SIGNOFF_MODULES}}` | 按岗位定制签收记录模块名（替换模板中默认的"KOL合作详情""客户跟进"等） |
+| `{{ROLE_CHECKLIST_ITEMS}}` | **AI根据岗位和用户信息动态生成7模块checklist**。格式：`{ "1": ["item1","item2"], "2": [...] }` JS对象。第2模块（账号权限）按实际账号类型填，不出现无关平台的check项 |
+| `{{ROLE_ACCOUNT_ROWS}}` | 权限移交表的账号行HTML。按岗位生成：财务填银行U盾/报税CA/财务系统，KOL填社媒/广告，开发填服务器/代码仓库。保留通用行（邮箱/IM）在模板中不动 |
+| `{{ROLE_SECURITY_ROWS}}` | 安全检查表的账号行HTML。同上，按岗位生成对应平台 |
+| `{{ROLE_ACCOUNT_NOTE}}` | 权限移交方式说明（如财务：U盾→交还、财务系统→转管理员；KOL：社媒→转管理员不共享密码等） |
+| `{{ROLE_SECURITY_NOTE}}` | 安全检查提醒（如财务：网银/报税CA/财务系统；KOL：社媒/广告/后台等，尤其容易遗漏） |
+| `{{ROLE_ACCOUNT_TYPES}}` | 公司账号类型描述文本（如财务：银行网银、报税CA、财务系统、企业邮箱；开发：代码仓库、服务器、CI/CD、企业邮箱） |
+| `{{ROLE_SCHEDULE_ITEMS}}` | **AI根据阶段0-2收集的所有信息动态生成倒排任务**。不预定义，每个岗位/每人生成不同的清单。用 `{ id: "d-neg-12", date: dayOffset(-12), tasks: [...]` 格式的JS数组 |
 | `{{ASSET_YELLOW_ROWS}}` | 混合资产具体行（根据用户项目生成） |
 | `{{ASSET_GREEN_ROWS}}` | 个人资产具体行 |
 | `{{RISK_REMINDER}}` | 基于用户情况的风险提醒 |
-| `{{PROJECT_NAMES}}` | 项目名称列表 |
-| `{{PROJECT_OWNERSHIP_NOTE}}` | 项目归属处理说明 |
-| `{{COMPANY_ASSET_HANDOVER}}` | 公司资产交接任务名 |
-| `{{MIXED_ASSET_HANDOVER}}` | 混合资产处理任务名 |
-| `{{PERSONAL_DATA_NOTE}}` | 个人数据导出说明 |
 | `{{EMAIL_TEMPLATES}}` | 根据阶段1第三组回答，只填充用得到的邮件模板（见下方4模板定义） |
 
 **生成原则**：
 - 模板不含任何岗位硬编码。`{{ROLE_TABLES}}` 是整个tab2的table HTML，根据阶段0的映射表生成
 - 表格默认2-3个空行，用户可在浏览器中增删行
-- **替换顺序**：先替换 `{{ROLE_TABLES}}`、`{{ROLE_SIGNOFF_MODULES}}`、`{{EMAIL_TEMPLATES}}`（它们内部可能含其他占位符），再替换 `{{USER_NAME}}`、`{{RESIGN_DATE}}` 等基础占位符
-- 倒排表的默认任务中不要出现KOL/1688/TikTok等岗位特定词汇，用通用描述
+- **替换顺序**：先替换 `{{ROLE_TABLES}}`、`{{ROLE_SIGNOFF_MODULES}}`、`{{EMAIL_TEMPLATES}}`、`{{ROLE_SCHEDULE_ITEMS}}`、`{{ROLE_CHECKLIST_ITEMS}}`（它们内部可能含其他占位符），再替换 `{{USER_NAME}}`、`{{RESIGN_DATE}}` 等基础占位符
+- **倒排任务动态生成规则（`{{ROLE_SCHEDULE_ITEMS}}`）**：
+  - 不预定义任何岗位的任务清单。AI根据阶段0（岗位）和阶段1-2（资产、项目、日期、接手人、通知对象）的所有信息，推理出该岗位的具体任务
+  - 格式：JS数组 `[ { id: "d-neg-12", date: dayOffset(-12), tasks: [ { id: genId(), name: "任务名", note: "备注", done: false }, ... ] }, ... ]`
+  - 前2天（D-12/D-11）的tasks打 `done: true`（信息收集和资产盘点——这是skill本身已完成的工作）
+  - 岗位相关任务要贴合实际：财务填报销/银行/税务，KOL填社媒/寄样/视频，开发填代码/部署/环境变量，销售填客户/订单/报价
+  - 通用任务保留：邮件交接、IM权限、设备清理、个人数据导出、签收签字
 
 #### 邮件模板定义（按场景×语言）
 
@@ -234,7 +241,7 @@ Cheers,
 
 - **阶段0岗位选择必须先执行**，这决定整个tab2的结构
 - 倒排表默认任务不出现岗位特定词汇（KOL/1688/TikTok等），用"合作方""项目""账号"等通用描述
-- 账号安全检查要逐平台过：社媒、广告账户、后台、数据分析、邮箱、IM
+- 账号安全检查要逐平台过：根据用户实际管理的平台生成，不预设备份清单。通用项：个人设备/2FA/recovery email/管理员/API key
 - 如果用户签了竞业，强烈提醒行业联系人不能带走
 - 走之前提醒用户清理个人工具中的公司相关数据
 - 模板默认2-3个空行，用户可通过"添加行"按钮扩展
