@@ -1,6 +1,6 @@
 # Job Resignation Handover
 
-离职交接 Skill for WorkBuddy。
+离职交接 Skill。
 
 ## 功能
 
