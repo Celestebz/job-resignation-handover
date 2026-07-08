@@ -533,13 +533,11 @@
 </head>
 <body>
 <div class="container">
-  <!-- ====== Tab栏（6个tab） ====== -->
+  <!-- ====== Tab栏（4个tab） ====== -->
   <div class="tabs">
     <button class="tab active" data-tab="schedule">倒排表</button>
     <button class="tab" data-tab="handover">工作交接看板</button>
     <button class="tab" data-tab="assets">资产与权限</button>
-    <button class="tab" data-tab="open-items">未闭环事项 <span class="tab-badge" id="openItemsBadge" style="display:none">0</span></button>
-    <button class="tab" data-tab="notification">对外通知</button>
     <button class="tab" data-tab="final-check">最终确认 <span class="tab-badge" id="checklistBadge">0</span></button>
   </div>
 
@@ -571,6 +569,36 @@
       <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
     </div>
     <div id="dayList"></div>
+
+    <!-- 对外通知（嵌入倒排表底部，倒排到 D-3~D-2 就该发通知了） -->
+    <div class="panel" style="margin-top:24px;">
+      <div class="panel-title">对外通知与邮件模板</div>
+      <div class="panel-sub">离职交接不只是内部文件，还需要给合作方/客户发通知。确保接手人被CC，沟通不断档。</div>
+      <div class="editable-hint">提示：通知清单可直接编辑，邮件模板点击展开后可编辑和复制</div>
+
+      <div class="doc-section">
+        <div class="doc-section-title">对外通知清单</div>
+        <div class="table-scroll">
+        <table class="doc-table" id="notifyList">
+          <thead><tr><th>合作方</th><th>关系类型</th><th>需要通知</th><th>通知方式</th><th>语言</th><th>CC接手人</th><th>通知状态</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr><td></td><td>KOL/客户/供应商/其他</td><td>是/否</td><td>邮件/DM/电话</td><td>中文/英文</td><td>是/否</td><td>未发/已发/已回复</td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+        </div>
+        <div class="row-actions">
+          <button class="btn-sm" onclick="addTableRow('notifyList')">+ 添加行</button>
+          <button class="btn-sm btn-danger" onclick="delTableRow('notifyList')">− 删除最后一行</button>
+        </div>
+      </div>
+
+{{EMAIL_TEMPLATES}}
+    </div>
+
     <div class="add-day-btn-wrap">
       <button class="btn" onclick="openAddDayModal()">+ 添加新的日期分组</button>
     </div>
@@ -584,6 +612,28 @@
       <div class="editable-hint">提示：所有表格单元格可直接点击编辑，修改自动保存。每个表格下方可添加/删除行。</div>
 
 {{ROLE_TABLES}}
+
+      <!-- 未闭环事项追踪（嵌入交接看板底部，都是接手人要接的东西） -->
+      <div class="doc-section" style="margin-top:28px;">
+        <div class="doc-section-title">未闭环事项追踪</div>
+        <div class="doc-note warning">
+          最容易出现的问题是"看起来交接了，但还有未闭环事项"。逐项列出，确保接手人知道下一步该做什么。<br>
+          风险等级：<span class="tag tag-high">高</span> 不处理会影响业务或合作关系 / <span class="tag tag-medium">中</span> 需要跟进但不紧急 / <span class="tag tag-low">低</span> 可暂缓
+        </div>
+        <div class="table-scroll">
+        <table class="doc-table" id="openItems">
+          <thead><tr><th>事项</th><th>当前状态</th><th>风险等级</th><th>下一步动作</th><th>负责人</th><th>截止日期</th><th>相关链接</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr><td></td><td></td><td>高/中/低</td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+        </div>
+        <div class="row-actions">
+          <button class="btn-sm" onclick="addTableRow('openItems')">+ 添加行</button>
+          <button class="btn-sm btn-danger" onclick="delTableRow('openItems')">− 删除最后一行</button>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -696,67 +746,7 @@
     </div>
   </div>
 
-  <!-- ====== Tab 4: 未闭环事项 ====== -->
-  <div class="tab-content" id="tab-open-items">
-    <div class="panel">
-      <div class="panel-title">未闭环事项</div>
-      <div class="panel-sub">最容易出现的问题是"看起来交接了，但还有未闭环事项"。逐项列出，确保接手人知道下一步该做什么。</div>
-      <div class="editable-hint">提示：所有单元格可直接点击编辑，修改自动保存</div>
-
-      <div class="doc-note warning">
-        <strong>使用方法：</strong>列出所有尚未闭环的事项——等待回复、等待产品更新、待付款、待发布、待确认等。<br>
-        风险等级：<span class="tag tag-high">高</span> 不处理会影响业务或合作关系 / <span class="tag tag-medium">中</span> 需要跟进但不紧急 / <span class="tag tag-low">低</span> 可暂缓
-      </div>
-
-      <div class="table-scroll">
-      <table class="doc-table" id="openItems">
-        <thead><tr><th>事项</th><th>当前状态</th><th>风险等级</th><th>下一步动作</th><th>负责人</th><th>截止日期</th><th>相关链接</th><th>备注</th></tr></thead>
-        <tbody>
-          <tr><td></td><td></td><td>高/中/低</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        </tbody>
-      </table>
-      </div>
-      <div class="row-actions">
-        <button class="btn-sm" onclick="addTableRow('openItems')">+ 添加行</button>
-        <button class="btn-sm btn-danger" onclick="delTableRow('openItems')">− 删除最后一行</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ====== Tab 5: 对外通知 ====== -->
-  <div class="tab-content" id="tab-notification">
-    <div class="panel">
-      <div class="panel-title">对外通知</div>
-      <div class="panel-sub">离职交接不只是内部文件，还需要给合作方/客户发通知。确保接手人被CC，沟通不断档。</div>
-      <div class="editable-hint">提示：通知清单可直接编辑，邮件模板点击展开后可编辑和复制</div>
-
-      <!-- 5.1 通知清单 -->
-      <div class="doc-section">
-        <div class="doc-section-title">一、对外通知清单</div>
-        <div class="table-scroll">
-        <table class="doc-table" id="notifyList">
-          <thead><tr><th>合作方</th><th>关系类型</th><th>需要通知</th><th>通知方式</th><th>语言</th><th>CC接手人</th><th>通知状态</th><th>备注</th></tr></thead>
-          <tbody>
-            <tr><td></td><td>KOL/客户/供应商/其他</td><td>是/否</td><td>邮件/DM/电话</td><td>中文/英文</td><td>是/否</td><td>未发/已发/已回复</td><td></td></tr>
-            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-          </tbody>
-        </table>
-        </div>
-        <div class="row-actions">
-          <button class="btn-sm" onclick="addTableRow('notifyList')">+ 添加行</button>
-          <button class="btn-sm btn-danger" onclick="delTableRow('notifyList')">− 删除最后一行</button>
-        </div>
-      </div>
-
-{{EMAIL_TEMPLATES}}
-    </div>
-  </div>
-
-  <!-- ====== Tab 6: 最终确认 / 签收 ====== -->
+  <!-- ====== Tab 4: 最终确认 / 签收 ====== -->
   <div class="tab-content" id="tab-final-check">
     <div class="panel">
       <div class="panel-title">最终确认与签收</div>
